@@ -7,7 +7,7 @@ import {
     borrowBook,
     returnBook,
     getRecommendations,
-} from "../controllers/bookController";
+} from "../controllers/bookController.";
 
 const router: Router = Router();
 

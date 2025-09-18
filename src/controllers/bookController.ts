@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { HTTP_STATUS } from "../constants/httpConstants";
-import * as bookService from "../services/bookService";
+import * as bookService from "../services/bookService.";
 
 export const getAllBooks = (req: Request, res: Response): void => {
     try {
