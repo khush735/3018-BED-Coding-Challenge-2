@@ -1,5 +1,5 @@
 import express, { Express, Request, Response } from "express";
-import bookRoutes from "./routes/bookRoutes.";
+import bookRoutes from "./routes/bookRoutes";
 
 const app: Express = express();
 app.use(express.json());
