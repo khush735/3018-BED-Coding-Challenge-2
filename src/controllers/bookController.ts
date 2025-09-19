@@ -4,7 +4,23 @@ import * as bookService from "../services/bookService";
 
 export const getAllBooks = (req: Request, res: Response): void => {
     try {
-        const books = bookService.getAllBooks();
+        const { title, author, genre } = req.query;
+
+        const filters: { title?: string; author?: string; genre?: string } = {};
+        if (typeof title === "string" && title.trim().length > 0) {
+            filters.title = title.trim();
+        }
+        if (typeof author === "string" && author.trim().length > 0) {
+            filters.author = author.trim();
+        }
+        if (typeof genre === "string" && genre.trim().length > 0) {
+            filters.genre = genre.trim();
+        }
+
+        const books = bookService.getAllBooks(
+            Object.keys(filters).length ? filters : undefined
+        );
+
         res.status(HTTP_STATUS.OK).json({
             message: "Books retrieved",
             data: books,
@@ -15,7 +31,6 @@ export const getAllBooks = (req: Request, res: Response): void => {
         });
     }
 };
-
 export const addBook = (req: Request, res: Response): void => {
     try {
         const newBook = req.body;
@@ -74,18 +89,48 @@ export const deleteBook = (req: Request, res: Response): void => {
 export const borrowBook = (req: Request, res: Response): void => {
     try {
         const { id } = req.params;
-        const borrowerId = req.body.borrowerId;
-        const result = bookService.borrowBook(id, borrowerId);
-        if (result) {
-            res.status(HTTP_STATUS.OK).json({
-                message: "Book borrowed",
-                data: result,
+        if (!id || id.trim() === "") {
+            res.status(HTTP_STATUS.BAD_REQUEST).json({
+                message: "Book ID parameter is required and cannot be empty",
             });
-        } else {
-            res.status(HTTP_STATUS.NOT_FOUND).json({
-                message: "Book not found or already borrowed",
-            });
+            return;
         }
+
+        const { borrowerId } = req.body as { borrowerId?: unknown };
+        if (typeof borrowerId !== "string") {
+            res.status(HTTP_STATUS.BAD_REQUEST).json({
+                message: "borrowerId is required in request body and must be a non-empty string",
+            });
+            return;
+        }
+        const borrowerIdTrimmed = borrowerId.trim();
+        if (borrowerIdTrimmed.length === 0) {
+            res.status(HTTP_STATUS.BAD_REQUEST).json({
+                message: "borrowerId cannot be empty or whitespace only",
+            });
+            return;
+        }
+
+        const existing = bookService.getBookById(id);
+        if (!existing) {
+            res.status(HTTP_STATUS.NOT_FOUND).json({
+                message: "Book not found",
+            });
+            return;
+        }
+
+        if (existing.isBorrowed) {
+            res.status(HTTP_STATUS.BAD_REQUEST).json({
+                message: "Book is already borrowed",
+            });
+            return;
+        }
+
+        const result = bookService.borrowBook(id, borrowerIdTrimmed);
+        res.status(HTTP_STATUS.OK).json({
+            message: "Book borrowed",
+            data: result,
+        });
     } catch (error) {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
             message: "Error borrowing book",
