@@ -89,6 +89,7 @@ export const deleteBook = (req: Request, res: Response): void => {
 export const borrowBook = (req: Request, res: Response): void => {
     try {
         const { id } = req.params;
+        // Validate id param
         if (!id || id.trim() === "") {
             res.status(HTTP_STATUS.BAD_REQUEST).json({
                 message: "Book ID parameter is required and cannot be empty",
@@ -96,6 +97,7 @@ export const borrowBook = (req: Request, res: Response): void => {
             return;
         }
 
+        // Validate borrowerId in body
         const { borrowerId } = req.body as { borrowerId?: unknown };
         if (typeof borrowerId !== "string") {
             res.status(HTTP_STATUS.BAD_REQUEST).json({
@@ -111,6 +113,7 @@ export const borrowBook = (req: Request, res: Response): void => {
             return;
         }
 
+        // Check existence
         const existing = bookService.getBookById(id);
         if (!existing) {
             res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -119,6 +122,7 @@ export const borrowBook = (req: Request, res: Response): void => {
             return;
         }
 
+        // Check if already borrowed
         if (existing.isBorrowed) {
             res.status(HTTP_STATUS.BAD_REQUEST).json({
                 message: "Book is already borrowed",
@@ -126,7 +130,9 @@ export const borrowBook = (req: Request, res: Response): void => {
             return;
         }
 
+        // All validations passed — perform borrow
         const result = bookService.borrowBook(id, borrowerIdTrimmed);
+        // result should be non-null since we already checked existence and borrow status
         res.status(HTTP_STATUS.OK).json({
             message: "Book borrowed",
             data: result,
