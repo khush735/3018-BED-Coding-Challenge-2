@@ -17,9 +17,7 @@ export const getAllBooks = (req: Request, res: Response): void => {
             filters.genre = genre.trim();
         }
 
-        const books = bookService.getAllBooks(
-            Object.keys(filters).length ? filters : undefined
-        );
+        const books = bookService.getAllBooks();
 
         res.status(HTTP_STATUS.OK).json({
             message: "Books retrieved",
